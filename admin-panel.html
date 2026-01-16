@@ -1,177 +1,76 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8" />
-  <title>Admin Panel - Toko Ghani</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-    }
-    .login, .dashboard {
-      display: none;
-      min-height: 100vh;
-      justify-content: center;
-      align-items: center;
-    }
-    .card {
-      background: #000;
-      padding: 30px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    }
-    h2, h3 {
-      text-align: center;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      background: gold;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: orange;
-    }
-    .dashboard {
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-    }
-    .product {
-      background: #000;
-      padding: 10px;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .row {
-      display: flex;
-      gap: 5px;
-    }
-    .row input {
-      flex: 1;
-    }
-  </style>
-</head>
-<body>
+```html
+function render() {
+const list = document.getElementById("list");
+list.innerHTML = "";
 
-  <!-- LOGIN -->
-  <div class="login" id="loginBox">
-    <div class="card">
-      <h2>🔐 Admin Login</h2>
-      <input type="text" id="user" placeholder="Username" />
-      <input type="password" id="pass" placeholder="Password" />
-      <button onclick="login()">Login</button>
-      <div id="msg"></div>
-    </div>
-  </div>
 
-  <!-- DASHBOARD -->
-  <div class="dashboard" id="dashboard">
-    <h2>🛒 Dashboard Toko Ghani</h2>
+products.forEach((p, i) => {
+const div = document.createElement("div");
+div.className = "product";
+div.innerHTML = `
+<img src="${p.image}">
+<b>${p.name}</b><br>
+Rp ${p.price} | Stok: ${p.stock}
+<br><br>
+<button onclick="remove(${i})">Hapus</button>
+`;
+list.appendChild(div);
+});
+}
 
-    <div class="card">
-      <h3>Tambah Produk</h3>
-      <input id="pname" placeholder="Nama Produk" />
-      <input id="pprice" placeholder="Harga" type="number" />
-      <input id="pstock" placeholder="Stok" type="number" />
-      <input id="pimage" placeholder="Link Foto (URL)" />
-      <button onclick="addProduct()">Tambah</button>
-    </div>
 
-    <div id="productList"></div>
-  </div>
+function addProduct() {
+const name = document.getElementById("name").value;
+const price = document.getElementById("price").value;
+const stock = document.getElementById("stock").value;
+const fileInput = document.getElementById("image");
 
-  <script>
-    const ADMIN_USER = "admin";
-    const ADMIN_PASS = "12345";
 
-    const loginBox = document.getElementById("loginBox");
-    const dashboard = document.getElementById("dashboard");
-    const msg = document.getElementById("msg");
-    const productList = document.getElementById("productList");
+if (!name || !price || !stock || !fileInput.files[0]) {
+alert("Lengkapi semua data + upload foto");
+return;
+}
 
-    loginBox.style.display = "flex";
 
-    function login() {
-      const user = document.getElementById("user").value;
-      const pass = document.getElementById("pass").value;
+const reader = new FileReader();
+reader.onload = function() {
+products.push({
+name,
+price,
+stock,
+image: reader.result
+});
 
-      if (user === ADMIN_USER && pass === ADMIN_PASS) {
-        loginBox.style.display = "none";
-        dashboard.style.display = "flex";
-        loadProducts();
-      } else {
-        msg.style.color = "red";
-        msg.innerText = "Login gagal ❌";
-      }
-    }
 
-    function getProducts() {
-      return JSON.parse(localStorage.getItem("products") || "[]");
-    }
+save();
+render();
 
-    function saveProducts(products) {
-      localStorage.setItem("products", JSON.stringify(products));
-    }
 
-    function addProduct() {
-      const name = document.getElementById("pname").value;
-      const price = document.getElementById("pprice").value;
-      const stock = document.getElementById("pstock").value;
-      const image = document.getElementById("pimage").value;
+document.getElementById("name").value = "";
+document.getElementById("price").value = "";
+document.getElementById("stock").value = "";
+fileInput.value = "";
+};
 
-      if (!name || !price || !stock) {
-        alert("Lengkapi semua data produk!");
-        return;
-      }
 
-      const products = getProducts();
-      products.push({ name, price, stock, image });
-      saveProducts(products);
+reader.readAsDataURL(fileInput.files[0]);
+}
 
-      document.getElementById("pname").value = "";
-      document.getElementById("pprice").value = "";
-      document.getElementById("pstock").value = "";
-      document.getElementById("pimage").value = "";
 
-      loadProducts();
-    }
+function remove(i) {
+products.splice(i, 1);
+save();
+render();
+}
 
-    function deleteProduct(index) {
-      const products = getProducts();
-      products.splice(index, 1);
-      saveProducts(products);
-      loadProducts();
-    }
 
-    function loadProducts() {
-      const products = getProducts();
-      productList.innerHTML = "";
+render();
+</script>
 
-      products.forEach((p, i) => {
-        const div = document.createElement("div");
-        div.className = "product";
-        div.innerHTML = `
-          <b>${p.name}</b><br>
-          Harga: Rp ${p.price}<br>
-          Stok: ${p.stock}<br>
-          <button onclick="deleteProduct(${i})">Hapus</button>
-        `;
-        productList.appendChild(div);
-      });
-    }
-  </script>
 
 </body>
 </html>
+```
+
+
+---
