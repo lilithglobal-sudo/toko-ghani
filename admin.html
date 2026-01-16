@@ -1,88 +1,175 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin - Toko Ghani</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Admin Panel - Toko Ghani</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #111;
       color: white;
-      display: flex;
+    }
+    .login, .dashboard {
+      display: none;
+      min-height: 100vh;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
     .card {
       background: #000;
-      padding: 40px;
+      padding: 30px;
       border-radius: 12px;
       width: 100%;
-      max-width: 350px;
-      text-align: center;
+      max-width: 400px;
       box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
     }
-    h2 {
-      margin-bottom: 20px;
+    h2, h3 {
+      text-align: center;
     }
-    input {
+    input, button {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+      padding: 10px;
+      margin: 8px 0;
       border-radius: 6px;
       border: none;
     }
     button {
-      width: 100%;
-      padding: 12px;
       background: gold;
-      border: none;
-      border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
     }
     button:hover {
       background: orange;
     }
-    .msg {
-      margin-top: 15px;
-      color: #ccc;
-      font-size: 0.9rem;
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .product {
+      background: #000;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+    .row {
+      display: flex;
+      gap: 5px;
+    }
+    .row input {
+      flex: 1;
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>🔐 Admin Login</h2>
+  <!-- LOGIN -->
+  <div class="login" id="loginBox">
+    <div class="card">
+      <h2>🔐 Admin Login</h2>
+      <input type="text" id="user" placeholder="Username" />
+      <input type="password" id="pass" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <div id="msg"></div>
+    </div>
+  </div>
 
-    <input type="text" id="user" placeholder="Username">
-    <input type="password" id="pass" placeholder="Password">
+  <!-- DASHBOARD -->
+  <div class="dashboard" id="dashboard">
+    <h2>🛒 Dashboard Toko Ghani</h2>
 
-    <button onclick="login()">Login</button>
+    <div class="card">
+      <h3>Tambah Produk</h3>
+      <input id="pname" placeholder="Nama Produk" />
+      <input id="pprice" placeholder="Harga" type="number" />
+      <input id="pstock" placeholder="Stok" type="number" />
+      <input id="pimage" placeholder="Link Foto (URL)" />
+      <button onclick="addProduct()">Tambah</button>
+    </div>
 
-    <div class="msg" id="msg"></div>
+    <div id="productList"></div>
   </div>
 
   <script>
+    const ADMIN_USER = "admin";
+    const ADMIN_PASS = "12345";
+
+    const loginBox = document.getElementById("loginBox");
+    const dashboard = document.getElementById("dashboard");
+    const msg = document.getElementById("msg");
+    const productList = document.getElementById("productList");
+
+    loginBox.style.display = "flex";
+
     function login() {
       const user = document.getElementById("user").value;
       const pass = document.getElementById("pass").value;
 
-      // GANTI LOGIN DI SINI
-      if (user === "admin" && pass === "12345") {
-        document.getElementById("msg").style.color = "gold";
-        document.getElementById("msg").innerText = "Login berhasil! 🚀";
-        setTimeout(() => {
-          alert("Selamat datang Admin Toko Ghani!");
-        }, 500);
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        loginBox.style.display = "none";
+        dashboard.style.display = "flex";
+        loadProducts();
       } else {
-        document.getElementById("msg").style.color = "red";
-        document.getElementById("msg").innerText = "Username atau password salah ❌";
+        msg.style.color = "red";
+        msg.innerText = "Login gagal ❌";
       }
+    }
+
+    function getProducts() {
+      return JSON.parse(localStorage.getItem("products") || "[]");
+    }
+
+    function saveProducts(products) {
+      localStorage.setItem("products", JSON.stringify(products));
+    }
+
+    function addProduct() {
+      const name = document.getElementById("pname").value;
+      const price = document.getElementById("pprice").value;
+      const stock = document.getElementById("pstock").value;
+      const image = document.getElementById("pimage").value;
+
+      if (!name || !price || !stock) {
+        alert("Lengkapi semua data produk!");
+        return;
+      }
+
+      const products = getProducts();
+      products.push({ name, price, stock, image });
+      saveProducts(products);
+
+      document.getElementById("pname").value = "";
+      document.getElementById("pprice").value = "";
+      document.getElementById("pstock").value = "";
+      document.getElementById("pimage").value = "";
+
+      loadProducts();
+    }
+
+    function deleteProduct(index) {
+      const products = getProducts();
+      products.splice(index, 1);
+      saveProducts(products);
+      loadProducts();
+    }
+
+    function loadProducts() {
+      const products = getProducts();
+      productList.innerHTML = "";
+
+      products.forEach((p, i) => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `
+          <b>${p.name}</b><br>
+          Harga: Rp ${p.price}<br>
+          Stok: ${p.stock}<br>
+          <button onclick="deleteProduct(${i})">Hapus</button>
+        `;
+        productList.appendChild(div);
+      });
     }
   </script>
 
