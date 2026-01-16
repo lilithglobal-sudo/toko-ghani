@@ -1,0 +1,62 @@
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+function save() {
+  localStorage.setItem("products", JSON.stringify(products));
+}
+
+function render() {
+  const list = document.getElementById("list");
+  if (!list) return;
+
+  list.innerHTML = "";
+  products.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <strong>${p.name}</strong><br>
+      Rp ${p.price} | Stok: ${p.stock}<br>
+      <img src="${p.image}" />
+      <button onclick="remove(${i})">Hapus</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function addProduct() {
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  const stock = document.getElementById("stock").value;
+  const fileInput = document.getElementById("image");
+
+  if (!name || !price || !stock || !fileInput.files[0]) {
+    alert("Lengkapi semua data + upload foto");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    products.push({
+      name,
+      price,
+      stock,
+      image: reader.result
+    });
+    save();
+    render();
+
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("stock").value = "";
+    fileInput.value = "";
+  };
+
+  reader.readAsDataURL(fileInput.files[0]);
+}
+
+function remove(i) {
+  products.splice(i, 1);
+  save();
+  render();
+}
+
+render();
