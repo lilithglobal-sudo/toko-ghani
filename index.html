@@ -5,101 +5,58 @@
   <title>Toko Ghani</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-    }
-    header {
-      background: black;
-      padding: 15px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: bold;
-      color: gold;
-      box-shadow: 0 2px 5px rgba(255,215,0,0.3);
-    }
-    .container {
-      padding: 15px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 15px;
-    }
-    .card {
-      background: black;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 0 10px rgba(255,215,0,0.3);
-    }
-    .card img {
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-    button {
-      width: 100%;
-      padding: 8px;
-      border: none;
-      border-radius: 6px;
-      background: gold;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:disabled {
-      background: gray;
-      cursor: not-allowed;
-    }
-    .cart {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: black;
-      padding: 10px;
-      box-shadow: 0 -2px 5px rgba(255,215,0,0.3);
-    }
+    body { margin:0; font-family:Arial, sans-serif; background:#111; color:white; }
+    header { background:black; padding:15px; text-align:center; font-size:24px; font-weight:bold; color:gold; }
+    .container { padding:15px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:15px; }
+    .card { background:black; border-radius:10px; padding:10px; box-shadow:0 0 10px rgba(255,215,0,0.3); }
+    .card img { width:100%; height:140px; object-fit:cover; border-radius:8px; }
+    button { width:100%; padding:8px; border:none; border-radius:6px; background:gold; font-weight:bold; cursor:pointer; }
+    button:disabled { background:gray; cursor:not-allowed; }
+    .cart { position:fixed; bottom:0; left:0; right:0; background:black; padding:10px; box-shadow:0 -2px 5px rgba(255,215,0,0.3); }
   </style>
 </head>
 <body>
 
 <header>🛒 Toko Ghani</header>
-
 <div class="container" id="productList"></div>
 
 <div class="cart">
   <div id="cartItems"></div>
-  <b>Total: Rp <span id="total">0</span></b>
-  <br><br>
+  <b>Total: Rp <span id="total">0</span></b><br><br>
   <button onclick="checkout()">Pesan via WhatsApp</button>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
+  authDomain: "toko-ghani-f2f67.firebaseapp.com",
+  projectId: "toko-ghani-f2f67",
+  storageBucket: "toko-ghani-f2f67.firebasestorage.app",
+  messagingSenderId: "177481860025",
+  appId: "1:177481860025:web:ed62358c58cc309ade2c68"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const productsRef = collection(db, "products");
+
 const productList = document.getElementById("productList");
 const cartItems = document.getElementById("cartItems");
 const totalEl = document.getElementById("total");
 
 let cart = [];
 
-function getProducts() {
-  return JSON.parse(localStorage.getItem("products") || "[]");
-}
-
-function saveProducts(products) {
-  localStorage.setItem("products", JSON.stringify(products));
-}
-
-function renderProducts() {
-  const products = getProducts();
+async function renderProducts() {
   productList.innerHTML = "";
+  const snapshot = await getDocs(productsRef);
 
-  if (products.length === 0) {
-    productList.innerHTML = "<p>Belum ada produk tersedia.</p>";
-    return;
-  }
+  snapshot.forEach(docSnap => {
+    const p = docSnap.data();
+    const id = docSnap.id;
 
-  products.forEach((p, i) => {
     const div = document.createElement("div");
     div.className = "card";
 
@@ -110,7 +67,7 @@ function renderProducts() {
       <h3>${p.name}</h3>
       <p>Rp ${p.price}</p>
       <p>Stok: ${p.stock}</p>
-      <button ${disabled} onclick="addToCart(${i})">
+      <button ${disabled} onclick="addToCart('${id}', ${p.stock}, ${p.price}, '${p.name.replace(/'/g, "\\'")}')">
         ${p.stock <= 0 ? "STOK HABIS" : "Tambah ke Keranjang"}
       </button>
     `;
@@ -119,19 +76,16 @@ function renderProducts() {
   });
 }
 
-function addToCart(index) {
-  const products = getProducts();
-  const product = products[index];
+window.addToCart = async function(id, stock, price, name) {
+  if (stock <= 0) return;
 
-  if (product.stock <= 0) return;
+  const productDoc = doc(db, "products", id);
+  await updateDoc(productDoc, { stock: stock - 1 });
 
-  product.stock--;
-  cart.push(product);
-
-  saveProducts(products);
-  renderProducts();
+  cart.push({ name, price });
   renderCart();
-}
+  renderProducts();
+};
 
 function renderCart() {
   cartItems.innerHTML = "";
@@ -147,9 +101,9 @@ function renderCart() {
   totalEl.innerText = total;
 }
 
-function checkout() {
+window.checkout = function() {
   if (cart.length === 0) {
-    alert("Keranjang masih kosong!");
+    alert("Keranjang kosong!");
     return;
   }
 
@@ -163,10 +117,10 @@ function checkout() {
 
   message += `%0ATotal: Rp ${total}`;
 
-  const phone = "6281214111411"; 
+  const phone = "6281214111411";
   const url = `https://wa.me/${phone}?text=${message}`;
   window.open(url, "_blank");
-}
+};
 
 renderProducts();
 </script>
