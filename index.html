@@ -1,51 +1,155 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Toko Ghani</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #111;
       color: white;
-      text-align: center;
     }
     header {
-      background: #000;
-      padding: 40px 20px;
-    }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-    }
-    p {
-      color: #ccc;
-    }
-    .btn {
-      display: inline-block;
-      margin-top: 30px;
-      padding: 15px 30px;
-      background: gold;
-      color: black;
-      text-decoration: none;
+      background: black;
+      padding: 15px;
+      text-align: center;
+      font-size: 24px;
       font-weight: bold;
-      border-radius: 8px;
-      transition: 0.3s;
+      color: gold;
     }
-    .btn:hover {
+    .container {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .card {
+      background: #000;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    .card img {
+      width: 100%;
+      border-radius: 8px;
+      height: 150px;
+      object-fit: cover;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 6px;
+      background: gold;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover {
       background: orange;
+    }
+    .cart {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: black;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>🛒 Toko Ghani</h1>
-    <p>Belanja mudah, cepat, dan terpercaya</p>
-    <a class="btn" href="admin.html">Masuk Admin</a>
-  </header>
+<header>🛒 Toko Ghani</header>
+
+<div class="container" id="productList"></div>
+
+<div class="cart">
+  <div id="cartItems"></div>
+  <b>Total: Rp <span id="total">0</span></b>
+  <button onclick="checkout()">Pesan via WhatsApp</button>
+</div>
+
+<script>
+  const productList = document.getElementById("productList");
+  const cartItems = document.getElementById("cartItems");
+  const totalEl = document.getElementById("total");
+
+  let cart = [];
+
+  function getProducts() {
+    return JSON.parse(localStorage.getItem("products") || "[]");
+  }
+
+  function renderProducts() {
+    const products = getProducts();
+    productList.innerHTML = "";
+
+    if (products.length === 0) {
+      productList.innerHTML = "<p>Produk belum tersedia.</p>";
+      return;
+    }
+
+    products.forEach((p, i) => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <img src="${p.image || 'https://via.placeholder.com/300'}">
+        <h3>${p.name}</h3>
+        <p>Rp ${p.price}</p>
+        <p>Stok: ${p.stock}</p>
+        <button onclick="addToCart(${i})">Tambah ke Keranjang</button>
+      `;
+      productList.appendChild(div);
+    });
+  }
+
+  function addToCart(index) {
+    const products = getProducts();
+    const product = products[index];
+
+    cart.push(product);
+    renderCart();
+  }
+
+  function renderCart() {
+    cartItems.innerHTML = "";
+    let total = 0;
+
+    cart.forEach(p => {
+      total += parseInt(p.price);
+      const div = document.createElement("div");
+      div.innerText = `${p.name} - Rp ${p.price}`;
+      cartItems.appendChild(div);
+    });
+
+    totalEl.innerText = total;
+  }
+
+  function checkout() {
+    if (cart.length === 0) {
+      alert("Keranjang kosong!");
+      return;
+    }
+
+    let message = "Halo, saya mau pesan:\n\n";
+    let total = 0;
+
+    cart.forEach(p => {
+      message += `- ${p.name} | Rp ${p.price}\n`;
+      total += parseInt(p.price);
+    });
+
+    message += `\nTotal: Rp ${total}`;
+    
+    const phone = "628123456789"; // GANTI NOMOR WA KAMU
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  }
+
+  renderProducts();
+</script>
 
 </body>
 </html>
