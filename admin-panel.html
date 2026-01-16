@@ -5,55 +5,22 @@
   <title>Admin Panel - Toko Ghani</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: white;
-      padding: 20px;
-    }
-    h2 {
-      color: gold;
-      text-align: center;
-    }
-    input, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      background: gold;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: orange;
-    }
-    .product {
-      background: black;
-      padding: 10px;
-      margin-top: 15px;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(255,215,0,0.3);
-    }
-    .product img {
-      width: 100%;
-      max-height: 150px;
-      object-fit: cover;
-      border-radius: 5px;
-      margin-bottom: 8px;
-    }
+    body { font-family: Arial, sans-serif; background:#111; color:white; padding:20px; }
+    h2 { color: gold; text-align:center; }
+    input, button { width:100%; padding:10px; margin-top:8px; border-radius:6px; border:none; }
+    button { background:gold; font-weight:bold; cursor:pointer; }
+    button:hover { background:orange; }
+    .product { background:black; padding:10px; margin-top:15px; border-radius:8px; box-shadow:0 0 8px rgba(255,215,0,0.3); }
+    .product img { width:100%; max-height:150px; object-fit:cover; border-radius:5px; margin-bottom:8px; }
   </style>
 </head>
 <body>
 
-<h2>🔐 Admin Panel — Toko Ghani</h2>
+<h2>🔐 Admin Panel — Toko Ghani (Cloud)</h2>
 
 <input id="name" placeholder="Nama Produk">
 <input id="price" placeholder="Harga (angka saja)">
 <input id="stock" type="number" placeholder="Stok">
-
 <label>📷 Upload Foto Produk</label>
 <input type="file" id="image" accept="image/*">
 
@@ -62,23 +29,32 @@
 <h3>📦 Daftar Produk</h3>
 <div id="list"></div>
 
-<script>
-let products = JSON.parse(localStorage.getItem("products") || "[]");
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-function save() {
-  localStorage.setItem("products", JSON.stringify(products));
-}
+const firebaseConfig = {
+  apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
+  authDomain: "toko-ghani-f2f67.firebaseapp.com",
+  projectId: "toko-ghani-f2f67",
+  storageBucket: "toko-ghani-f2f67.firebasestorage.app",
+  messagingSenderId: "177481860025",
+  appId: "1:177481860025:web:ed62358c58cc309ade2c68"
+};
 
-function render() {
-  const list = document.getElementById("list");
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const productsRef = collection(db, "products");
+
+const list = document.getElementById("list");
+
+async function loadProducts() {
   list.innerHTML = "";
+  const snapshot = await getDocs(productsRef);
 
-  if (products.length === 0) {
-    list.innerHTML = "<p>Belum ada produk.</p>";
-    return;
-  }
-
-  products.forEach((p, i) => {
+  snapshot.forEach(docSnap => {
+    const p = docSnap.data();
     const div = document.createElement("div");
     div.className = "product";
 
@@ -87,54 +63,52 @@ function render() {
       <b>${p.name}</b><br>
       Rp ${p.price} | Stok: ${p.stock}
       <br><br>
-      <button onclick="removeProduct(${i})">Hapus Produk</button>
+      <button onclick="deleteProduct('${docSnap.id}')">Hapus Produk</button>
     `;
 
     list.appendChild(div);
   });
 }
 
-function addProduct() {
+window.addProduct = async function() {
   const name = document.getElementById("name").value.trim();
   const price = document.getElementById("price").value.trim();
   const stock = document.getElementById("stock").value.trim();
   const fileInput = document.getElementById("image");
 
   if (!name || !price || !stock || !fileInput.files[0]) {
-    alert("Lengkapi semua data + upload foto produk");
+    alert("Lengkapi semua data + upload foto");
     return;
   }
 
   const reader = new FileReader();
-  reader.onload = function() {
-    products.push({
+  reader.onload = async function() {
+    await addDoc(productsRef, {
       name,
       price,
       stock: parseInt(stock),
       image: reader.result
     });
 
-    save();
-    render();
-
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("stock").value = "";
     fileInput.value = "";
+
+    loadProducts();
   };
 
   reader.readAsDataURL(fileInput.files[0]);
-}
+};
 
-function removeProduct(index) {
+window.deleteProduct = async function(id) {
   if (confirm("Yakin mau hapus produk ini?")) {
-    products.splice(index, 1);
-    save();
-    render();
+    await deleteDoc(doc(db, "products", id));
+    loadProducts();
   }
-}
+};
 
-render();
+loadProducts();
 </script>
 
 </body>
