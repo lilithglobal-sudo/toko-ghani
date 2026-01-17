@@ -53,15 +53,19 @@ img {
 </div>
 
 <script>
-var firebaseConfig = {
-  apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
+<script>
+const firebaseConfig = {
+  apiKey: "API_KEY_KAMU",
   authDomain: "toko-ghani-f2f67.firebaseapp.com",
-  databaseURL: "https://toko-ghani-f2f67-default-rtdb.firebaseio.com",
+  databaseURL: "https://toko-ghani-f2f67-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "toko-ghani-f2f67",
   storageBucket: "toko-ghani-f2f67.appspot.com",
-  messagingSenderId: "177481860025",
-  appId: "1:177481860025:web:ed62358c58cc309ade2c68"
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
+
+firebase.initializeApp(firebaseConfig);
+</script>
 
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
@@ -116,3 +120,4 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
+
