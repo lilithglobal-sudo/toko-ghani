@@ -4,121 +4,114 @@
 <meta charset="UTF-8">
 <title>Admin Panel - Toko Ghani</title>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <style>
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #f2f2f2;
   padding: 20px;
 }
-
 .box {
   max-width: 400px;
   margin: auto;
   background: white;
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
-
 input, button {
   width: 100%;
-  margin-top: 10px;
   padding: 10px;
+  margin-top: 10px;
 }
-
 .product {
   background: #eee;
   padding: 10px;
   margin-top: 10px;
   border-radius: 5px;
 }
-
 img {
   width: 100%;
-  border-radius: 5px;
   margin-top: 5px;
 }
 </style>
 </head>
-
 <body>
 
 <div class="box">
-  <h2>Admin - Toko Ghani</h2>
+<h2>Admin - Toko Ghani</h2>
 
-  <input id="name" placeholder="Nama Produk">
-  <input id="price" type="number" placeholder="Harga">
-  <input id="stock" type="number" placeholder="Stok">
-  <input id="image" type="file" accept="image/*">
+<input id="name" placeholder="Nama Produk">
+<input id="price" type="number" placeholder="Harga">
+<input id="stock" type="number" placeholder="Stok">
+<input id="image" type="file" accept="image/*">
 
-  <button type="button" onclick="addProduct()">Tambah Produk</button>
+<button onclick="addProduct()">Tambah Produk</button>
 
-  <div id="list"></div>
+<div id="list"></div>
 </div>
 
 <script>
-let products = JSON.parse(localStorage.getItem("products")) || [];
+var firebaseConfig = {
+  apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
+  authDomain: "toko-ghani-f2f67.firebaseapp.com",
+  databaseURL: "https://toko-ghani-f2f67-default-rtdb.firebaseio.com",
+  projectId: "toko-ghani-f2f67",
+  storageBucket: "toko-ghani-f2f67.appspot.com",
+  messagingSenderId: "177481860025",
+  appId: "1:177481860025:web:ed62358c58cc309ade2c68"
+};
 
-function save() {
-  localStorage.setItem("products", JSON.stringify(products));
-}
-
-function render() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  products.forEach((p, i) => {
-    const div = document.createElement("div");
-    div.className = "product";
-    div.innerHTML = `
-      <strong>${p.name}</strong><br>
-      Rp ${p.price} | Stok: ${p.stock}<br>
-      <img src="${p.image}">
-      <button onclick="removeProduct(${i})">Hapus</button>
-    `;
-    list.appendChild(div);
-  });
-}
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
 function addProduct() {
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-  const stock = document.getElementById("stock").value;
-  const fileInput = document.getElementById("image");
+  let name = document.getElementById("name").value;
+  let price = document.getElementById("price").value;
+  let stock = document.getElementById("stock").value;
+  let file = document.getElementById("image").files[0];
 
-  if (!name || !price || !stock || !fileInput.files[0]) {
-    alert("Lengkapi semua data dan upload foto");
+  if (!name || !price || !stock || !file) {
+    alert("Lengkapi semua data & upload foto!");
     return;
   }
 
-  const reader = new FileReader();
+  let reader = new FileReader();
   reader.onload = function() {
-    products.push({
-      name,
-      price,
-      stock,
+    let newRef = db.ref("products").push();
+    newRef.set({
+      name: name,
+      price: price,
+      stock: stock,
       image: reader.result
     });
-
-    save();
-    render();
 
     document.getElementById("name").value = "";
     document.getElementById("price").value = "";
     document.getElementById("stock").value = "";
-    fileInput.value = "";
+    document.getElementById("image").value = "";
   };
-
-  reader.readAsDataURL(fileInput.files[0]);
+  reader.readAsDataURL(file);
 }
 
-function removeProduct(i) {
-  products.splice(i, 1);
-  save();
-  render();
-}
+db.ref("products").on("value", snapshot => {
+  let list = document.getElementById("list");
+  list.innerHTML = "";
 
-render();
+  snapshot.forEach(child => {
+    let p = child.val();
+    let div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <b>${p.name}</b><br>
+      Rp ${p.price}<br>
+      Stok: ${p.stock}<br>
+      <img src="${p.image}">
+    `;
+    list.appendChild(div);
+  });
+});
 </script>
 
 </body>
