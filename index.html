@@ -31,7 +31,6 @@ img {
 <div id="list"></div>
 
 <script>
-<script>
 const firebaseConfig = {
   apiKey: "API_KEY_KAMU",
   authDomain: "toko-ghani-f2f67.firebaseapp.com",
@@ -41,10 +40,6 @@ const firebaseConfig = {
   messagingSenderId: "SENDER_ID",
   appId: "APP_ID"
 };
-
-firebase.initializeApp(firebaseConfig);
-</script>
-
 
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
@@ -70,4 +65,3 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
-
