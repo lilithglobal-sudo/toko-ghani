@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Admin Panel - Toko Ghani</title>
 
+<!-- Firebase v8 -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -14,7 +15,7 @@ body {
   padding: 20px;
 }
 .box {
-  max-width: 400px;
+  max-width: 420px;
   margin: auto;
   background: white;
   padding: 20px;
@@ -25,6 +26,16 @@ input, button {
   padding: 10px;
   margin-top: 10px;
 }
+button {
+  background: #2ecc71;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:hover {
+  background: #27ae60;
+}
 .product {
   background: #eee;
   padding: 10px;
@@ -34,58 +45,57 @@ input, button {
 img {
   width: 100%;
   margin-top: 5px;
+  border-radius: 5px;
+}
+.delete {
+  background: #e74c3c;
+  margin-top: 5px;
 }
 </style>
 </head>
 <body>
 
 <div class="box">
-<h2>Admin - Toko Ghani</h2>
+  <h2>🔐 Admin - Toko Ghani</h2>
 
-<input id="name" placeholder="Nama Produk">
-<input id="price" type="number" placeholder="Harga">
-<input id="stock" type="number" placeholder="Stok">
-<input id="image" type="file" accept="image/*">
+  <input id="name" placeholder="Nama Produk">
+  <input id="price" type="number" placeholder="Harga">
+  <input id="stock" type="number" placeholder="Stok">
+  <input id="image" type="file" accept="image/*">
 
-<button onclick="addProduct()">Tambah Produk</button>
+  <button onclick="addProduct()">Tambah Produk</button>
 
-<div id="list"></div>
+  <div id="list"></div>
 </div>
 
 <script>
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
   authDomain: "toko-ghani-f2f67.firebaseapp.com",
   databaseURL: "https://toko-ghani-f2f67-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "toko-ghani-f2f67",
-  storageBucket: "toko-ghani-f2f67.firebasestorage.app",
+  storageBucket: "toko-ghani-f2f67.appspot.com",
   messagingSenderId: "177481860025",
   appId: "1:177481860025:web:ed62358c58cc309ade2c68"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 function addProduct() {
-  let name = document.getElementById("name").value;
-  let price = document.getElementById("price").value;
-  let stock = document.getElementById("stock").value;
-  let file = document.getElementById("image").files[0];
+  const name = document.getElementById("name").value.trim();
+  const price = document.getElementById("price").value;
+  const stock = document.getElementById("stock").value;
+  const file = document.getElementById("image").files[0];
 
   if (!name || !price || !stock || !file) {
-    alert("Lengkapi semua data & upload foto!");
+    alert("Lengkapi semua data dan upload foto!");
     return;
   }
 
-  let reader = new FileReader();
+  const reader = new FileReader();
   reader.onload = function() {
-    let newRef = db.ref("products").push();
+    const newRef = db.ref("products").push();
     newRef.set({
       name: name,
       price: price,
@@ -101,19 +111,28 @@ function addProduct() {
   reader.readAsDataURL(file);
 }
 
+function deleteProduct(id) {
+  if (confirm("Hapus produk ini?")) {
+    db.ref("products/" + id).remove();
+  }
+}
+
 db.ref("products").on("value", snapshot => {
-  let list = document.getElementById("list");
+  const list = document.getElementById("list");
   list.innerHTML = "";
 
   snapshot.forEach(child => {
-    let p = child.val();
-    let div = document.createElement("div");
+    const p = child.val();
+    const div = document.createElement("div");
     div.className = "product";
     div.innerHTML = `
       <b>${p.name}</b><br>
       Rp ${p.price}<br>
       Stok: ${p.stock}<br>
       <img src="${p.image}">
+      <button class="delete" onclick="deleteProduct('${child.key}')">
+        Hapus
+      </button>
     `;
     list.appendChild(div);
   });
@@ -122,5 +141,3 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
-
-
