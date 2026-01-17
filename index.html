@@ -139,7 +139,7 @@ function sendWA() {
   msg += "%0ATotal: Rp " + total;
 
   // SIMPAN KE GOOGLE SHEET
-  fetch("https://docs.google.com/spreadsheets/d/17l1fk8L0OE0zSYzMlRm9bMPld526pde0Y8hboIEn2SE/edit?gid=0#gid=0", {
+  fetch("https://script.google.com/macros/s/AKfycbzIb6AjuJhPRiammFsl6JkBMqDnOfIrum4SVq-jnEvTU4XE13XFbH_ZD2-9YCfRddQw/exec", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -164,6 +164,7 @@ function sendWA() {
 
 </body>
 </html>
+
 
 
 
