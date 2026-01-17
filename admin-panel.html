@@ -1,14 +1,15 @@
-<script>
-if (!sessionStorage.getItem("admin")) {
-  window.location.href = "login.html";
-}
-</script>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <title>Admin Panel - Toko Ghani</title>
 
-<!-- Firebase v8 -->
+<script>
+if (!sessionStorage.getItem("admin")) {
+  window.location.href = "login.html";
+}
+</script>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -19,7 +20,7 @@ body {
   padding: 20px;
 }
 .box {
-  max-width: 420px;
+  max-width: 450px;
   margin: auto;
   background: white;
   padding: 20px;
@@ -31,14 +32,11 @@ input, button {
   margin-top: 10px;
 }
 button {
-  background: #2ecc71;
+  background: black;
+  color: gold;
   border: none;
-  color: white;
   font-weight: bold;
   cursor: pointer;
-}
-button:hover {
-  background: #27ae60;
 }
 .product {
   background: #eee;
@@ -53,23 +51,27 @@ img {
 }
 .delete {
   background: #e74c3c;
-  margin-top: 5px;
+  color: white;
 }
 </style>
 </head>
 <body>
 
 <div class="box">
-  <h2>🔐 Admin - Toko Ghani</h2>
+  <h2>🛠️ Admin - Toko Ghani</h2>
 
   <input id="name" placeholder="Nama Produk">
   <input id="price" type="number" placeholder="Harga">
   <input id="stock" type="number" placeholder="Stok">
   <input id="image" type="file" accept="image/*">
 
-  <button id="btnAdd">Tambah Produk</button>
+  <button onclick="addProduct()">Tambah Produk</button>
 
+  <h3>📦 Produk</h3>
   <div id="list"></div>
+
+  <h3>🧾 Pesanan Masuk</h3>
+  <div id="orders"></div>
 </div>
 
 <script>
@@ -86,8 +88,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-document.getElementById("btnAdd").addEventListener("click", addProduct);
-
 function addProduct() {
   const name = document.getElementById("name").value.trim();
   const price = document.getElementById("price").value;
@@ -101,18 +101,11 @@ function addProduct() {
 
   const reader = new FileReader();
   reader.onload = function() {
-    const newRef = db.ref("products").push();
-    newRef.set({
+    db.ref("products").push({
       name: name,
       price: price,
       stock: stock,
-      image: reader.result,
-      time: Date.now()
-    }).then(() => {
-      alert("Produk berhasil ditambahkan!");
-    }).catch(err => {
-      alert("Gagal upload: " + err.message);
-      console.error(err);
+      image: reader.result
     });
 
     document.getElementById("name").value = "";
@@ -137,6 +130,7 @@ db.ref("products").on("value", snapshot => {
     const p = child.val();
     const div = document.createElement("div");
     div.className = "product";
+
     div.innerHTML = `
       <b>${p.name}</b><br>
       Rp ${p.price}<br>
@@ -144,11 +138,30 @@ db.ref("products").on("value", snapshot => {
       <img src="${p.image}">
       <button class="delete" onclick="deleteProduct('${child.key}')">Hapus</button>
     `;
+
     list.appendChild(div);
+  });
+});
+
+db.ref("orders").on("value", snap => {
+  const box = document.getElementById("orders");
+  box.innerHTML = "";
+
+  snap.forEach(child => {
+    const o = child.val();
+    const div = document.createElement("div");
+    div.className = "product";
+    div.innerHTML = `
+      <b>${o.customer}</b><br>
+      ${o.address}<br>
+      Bayar: ${o.payment}<br>
+      Total: Rp ${o.total}<br>
+      <small>${o.time}</small>
+    `;
+    box.appendChild(div);
   });
 });
 </script>
 
 </body>
 </html>
-
