@@ -63,7 +63,7 @@ img {
   <input id="stock" type="number" placeholder="Stok">
   <input id="image" type="file" accept="image/*">
 
-  <button onclick="addProduct()">Tambah Produk</button>
+  <button id="btnAdd">Tambah Produk</button>
 
   <div id="list"></div>
 </div>
@@ -81,6 +81,8 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
+document.getElementById("btnAdd").addEventListener("click", addProduct);
 
 function addProduct() {
   const name = document.getElementById("name").value.trim();
@@ -100,7 +102,13 @@ function addProduct() {
       name: name,
       price: price,
       stock: stock,
-      image: reader.result
+      image: reader.result,
+      time: Date.now()
+    }).then(() => {
+      alert("Produk berhasil ditambahkan!");
+    }).catch(err => {
+      alert("Gagal upload: " + err.message);
+      console.error(err);
     });
 
     document.getElementById("name").value = "";
@@ -130,9 +138,7 @@ db.ref("products").on("value", snapshot => {
       Rp ${p.price}<br>
       Stok: ${p.stock}<br>
       <img src="${p.image}">
-      <button class="delete" onclick="deleteProduct('${child.key}')">
-        Hapus
-      </button>
+      <button class="delete" onclick="deleteProduct('${child.key}')">Hapus</button>
     `;
     list.appendChild(div);
   });
