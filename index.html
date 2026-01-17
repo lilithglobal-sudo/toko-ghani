@@ -23,6 +23,7 @@ h2 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 12px;
+  margin-bottom: 160px;
 }
 
 .product {
@@ -50,7 +51,7 @@ h2 {
 }
 
 button {
-  background: #000;
+  background: black;
   color: gold;
   border: none;
   padding: 8px;
@@ -94,6 +95,7 @@ input, select {
 
   <input id="custName" placeholder="Nama">
   <input id="custAddress" placeholder="Alamat">
+
   <select id="payment">
     <option value="Tunai">Tunai</option>
     <option value="Transfer BCA">Transfer BCA</option>
@@ -120,7 +122,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let cart = [];
-const waNumber = "6281214111411"; // WA kamu
+const waNumber = "6281214111411";
 
 function addToCart(name, price) {
   cart.push({ name, price });
@@ -151,14 +153,14 @@ function sendWA() {
   let total = 0;
   cart.forEach(i => total += parseInt(i.price));
 
-  // SIMPAN ORDER
+  // SIMPAN ORDER KE FIREBASE
   db.ref("orders").push({
     customer: name,
     address: address,
     payment: pay,
     items: cart,
     total: total,
-    time: new Date().toISOString()
+    time: new Date().toLocaleString()
   });
 
   let msg = `Halo Toko Ghani!%0A%0A`;
@@ -173,7 +175,7 @@ function sendWA() {
 
   msg += `%0ATotal: Rp ${total}`;
 
-  window.open(`https://wa.me/6281214111411?text=${msg}`, "_blank");
+  window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
 
   cart = [];
   renderCart();
@@ -204,4 +206,3 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
-
