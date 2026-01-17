@@ -1,128 +1,66 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <title>Toko Ghani</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { margin:0; font-family:Arial, sans-serif; background:#111; color:white; }
-    header { background:black; padding:15px; text-align:center; font-size:24px; font-weight:bold; color:gold; }
-    .container { padding:15px; display:grid; grid-template-columns:repeat(auto-fill, minmax(180px,1fr)); gap:15px; }
-    .card { background:black; border-radius:10px; padding:10px; box-shadow:0 0 10px rgba(255,215,0,0.3); }
-    .card img { width:100%; height:140px; object-fit:cover; border-radius:8px; }
-    button { width:100%; padding:8px; border:none; border-radius:6px; background:gold; font-weight:bold; cursor:pointer; }
-    button:disabled { background:gray; cursor:not-allowed; }
-    .cart { position:fixed; bottom:0; left:0; right:0; background:black; padding:10px; box-shadow:0 -2px 5px rgba(255,215,0,0.3); }
-  </style>
+<meta charset="UTF-8">
+<title>Toko Ghani</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f2f2f2;
+  padding: 20px;
+}
+.product {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+img {
+  width: 100%;
+  border-radius: 5px;
+}
+</style>
 </head>
 <body>
 
-<header>🛒 Toko Ghani</header>
-<div class="container" id="productList"></div>
+<h2>🛒 Toko Ghani</h2>
+<div id="list"></div>
 
-<div class="cart">
-  <div id="cartItems"></div>
-  <b>Total: Rp <span id="total">0</span></b><br><br>
-  <button onclick="checkout()">Pesan via WhatsApp</button>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
+<script>
+var firebaseConfig = {
   apiKey: "AIzaSyARkm1CBiNsXUS6DgmQGnK9GvRZhTiwKOM",
   authDomain: "toko-ghani-f2f67.firebaseapp.com",
+  databaseURL: "https://toko-ghani-f2f67-default-rtdb.firebaseio.com",
   projectId: "toko-ghani-f2f67",
-  storageBucket: "toko-ghani-f2f67.firebasestorage.app",
+  storageBucket: "toko-ghani-f2f67.appspot.com",
   messagingSenderId: "177481860025",
   appId: "1:177481860025:web:ed62358c58cc309ade2c68"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const productsRef = collection(db, "products");
+firebase.initializeApp(firebaseConfig);
+var db = firebase.database();
 
-const productList = document.getElementById("productList");
-const cartItems = document.getElementById("cartItems");
-const totalEl = document.getElementById("total");
+db.ref("products").on("value", snapshot => {
+  let list = document.getElementById("list");
+  list.innerHTML = "";
 
-let cart = [];
-
-async function renderProducts() {
-  productList.innerHTML = "";
-  const snapshot = await getDocs(productsRef);
-
-  snapshot.forEach(docSnap => {
-    const p = docSnap.data();
-    const id = docSnap.id;
-
-    const div = document.createElement("div");
-    div.className = "card";
-
-    const disabled = p.stock <= 0 ? "disabled" : "";
-
+  snapshot.forEach(child => {
+    let p = child.val();
+    let div = document.createElement("div");
+    div.className = "product";
     div.innerHTML = `
-      <img src="${p.image}">
       <h3>${p.name}</h3>
-      <p>Rp ${p.price}</p>
+      <img src="${p.image}">
+      <p>Harga: Rp ${p.price}</p>
       <p>Stok: ${p.stock}</p>
-      <button ${disabled} onclick="addToCart('${id}', ${p.stock}, ${p.price}, '${p.name.replace(/'/g, "\\'")}')">
-        ${p.stock <= 0 ? "STOK HABIS" : "Tambah ke Keranjang"}
-      </button>
     `;
-
-    productList.appendChild(div);
+    list.appendChild(div);
   });
-}
-
-window.addToCart = async function(id, stock, price, name) {
-  if (stock <= 0) return;
-
-  const productDoc = doc(db, "products", id);
-  await updateDoc(productDoc, { stock: stock - 1 });
-
-  cart.push({ name, price });
-  renderCart();
-  renderProducts();
-};
-
-function renderCart() {
-  cartItems.innerHTML = "";
-  let total = 0;
-
-  cart.forEach(p => {
-    total += parseInt(p.price);
-    const div = document.createElement("div");
-    div.innerText = `${p.name} - Rp ${p.price}`;
-    cartItems.appendChild(div);
-  });
-
-  totalEl.innerText = total;
-}
-
-window.checkout = function() {
-  if (cart.length === 0) {
-    alert("Keranjang kosong!");
-    return;
-  }
-
-  let message = "Halo, saya mau pesan:%0A%0A";
-  let total = 0;
-
-  cart.forEach(p => {
-    message += `- ${p.name} | Rp ${p.price}%0A`;
-    total += parseInt(p.price);
-  });
-
-  message += `%0ATotal: Rp ${total}`;
-
-  const phone = "6281214111411";
-  const url = `https://wa.me/${phone}?text=${message}`;
-  window.open(url, "_blank");
-};
-
-renderProducts();
+});
 </script>
 
 </body>
