@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+<script>
+if (!sessionStorage.getItem("admin")) {
+  window.location.href = "login.html";
+}
+</script>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -147,3 +151,4 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
+
