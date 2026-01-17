@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Login Admin - Toko Ghani</title>
+<style>
+body {
+  font-family: Arial;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.box {
+  background: gold;
+  padding: 25px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+}
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+button {
+  background: black;
+  color: gold;
+  border: none;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h2>🔐 Admin Toko Ghani</h2>
+  <input id="pass" type="password" placeholder="Password Admin">
+  <button onclick="login()">Masuk</button>
+</div>
+
+<script>
+const ADMIN_PASS = "Goril4biscuit";
+
+function login() {
+  const pass = document.getElementById("pass").value;
+  if (pass === ADMIN_PASS) {
+    sessionStorage.setItem("admin", "true");
+    window.location.href = "admin-panel.html";
+  } else {
+    alert("Password salah!");
+  }
+}
+</script>
+
+</body>
+</html>
