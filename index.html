@@ -148,21 +148,35 @@ function sendWA() {
     return;
   }
 
+  let total = 0;
+  cart.forEach(i => total += parseInt(i.price));
+
+  // SIMPAN ORDER
+  db.ref("orders").push({
+    customer: name,
+    address: address,
+    payment: pay,
+    items: cart,
+    total: total,
+    time: new Date().toISOString()
+  });
+
   let msg = `Halo Toko Ghani!%0A%0A`;
   msg += `Nama: ${name}%0A`;
   msg += `Alamat: ${address}%0A`;
   msg += `Metode Bayar: ${pay}%0A%0A`;
   msg += `Pesanan:%0A`;
 
-  let total = 0;
   cart.forEach(item => {
     msg += `- ${item.name} (Rp ${item.price})%0A`;
-    total += parseInt(item.price);
   });
 
   msg += `%0ATotal: Rp ${total}`;
 
-  window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
+  window.open(`https://wa.me/6281214111411?text=${msg}`, "_blank");
+
+  cart = [];
+  renderCart();
 }
 
 db.ref("products").on("value", snapshot => {
@@ -190,3 +204,4 @@ db.ref("products").on("value", snapshot => {
 
 </body>
 </html>
+
